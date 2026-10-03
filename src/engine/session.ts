@@ -1,4 +1,5 @@
 import type { Question, TestSession } from "./types";
+import { identity } from "./generateQuestion";
 const KEY = "ety.session.v1";
 function validQuestion(value: unknown): value is Question {
   if (!value || typeof value !== "object") return false;
@@ -16,6 +17,14 @@ function validQuestion(value: unknown): value is Question {
   )
     return false;
   if (new Set(q.choices.map((c) => c.id)).size !== q.choices.length)
+    return false;
+  if (new Set(q.choices.map((c) => identity(c.word))).size !== q.choices.length)
+    return false;
+  // Old cached questions must not resurrect duplicate pairs after an update.
+  if (
+    q.type === "meaning" &&
+    new Set(q.choices.map((c) => identity(c.meaning ?? ""))).size !== 4
+  )
     return false;
   if (!q.correctIds.every((id) => q.choices.some((c) => c.id === id)))
     return false;
@@ -37,6 +46,10 @@ function validQuestion(value: unknown): value is Question {
     q.choices.length === 3 &&
     q.correctIds.length === 1 &&
     typeof q.sentence === "string" &&
+    q.sentence
+      .split(/\\n|\r?\n|(?=[①-⑳Ⓔ])/u)
+      .filter(Boolean)
+      .every((example) => example.includes("______")) &&
     typeof q.targetWord === "string" &&
     typeof q.originalSentence === "string"
   );

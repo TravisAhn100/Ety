@@ -65,9 +65,10 @@ describe("complete study flow", () => {
               .disabled,
           ).toBe(false),
         );
-        fireEvent.click(
-          screen.getByRole("radio", { name: new RegExp(chapter) }),
-        );
+        if (chapter !== "Chapter 16") {
+          fireEvent.click(screen.getByRole("checkbox", { name: "Chapter 16" }));
+          fireEvent.click(screen.getByRole("checkbox", { name: chapter }));
+        }
         fireEvent.click(
           screen.getByRole("radio", { name: new RegExp(difficulty) }),
         );
@@ -174,4 +175,62 @@ describe("complete study flow", () => {
     fireEvent.click(screen.getByRole("button", { name: "공지" }));
     expect(screen.getByText("공지는 준비 중입니다.")).toBeTruthy();
   });
+});
+
+it("removes the left introduction, supports multiple chapters and returns home through the logo", async () => {
+  render(<App />);
+  await waitFor(() =>
+    expect(
+      (screen.getByRole("button", { name: "시작" }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(false),
+  );
+  expect(screen.queryByText(/Words worth/)).toBeNull();
+  fireEvent.click(screen.getByRole("checkbox", { name: "Chapter 17" }));
+  fireEvent.click(screen.getByRole("button", { name: "시작" }));
+  const session = JSON.parse(localStorage.getItem("ety.session.v1")!);
+  expect(session.chapter).toBe("Chapter 16 + Chapter 17");
+  fireEvent.click(screen.getByRole("link", { name: /Ety Thoth/ }));
+  expect(screen.getByRole("button", { name: "시작" })).toBeTruthy();
+  expect(
+    screen.getByRole("button", { name: "진행 중인 테스트 이어하기 →" }),
+  ).toBeTruthy();
+});
+it("disables Start with no chapters selected", async () => {
+  render(<App />);
+  await waitFor(() =>
+    expect(
+      (screen.getByRole("button", { name: "시작" }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(false),
+  );
+  fireEvent.click(screen.getByRole("checkbox", { name: "Chapter 16" }));
+  expect(
+    (screen.getByRole("button", { name: "시작" }) as HTMLButtonElement)
+      .disabled,
+  ).toBe(true);
+});
+it("renders an underlined blank for every replacement", () => {
+  const chapter = parseVocabulary(source).chapters[0];
+  const questions = generateQuestions(chapter, "Easy", 3);
+  const index = questions.findIndex((q) => q.type === "sentence");
+  localStorage.setItem(
+    "ety.session.v1",
+    JSON.stringify({
+      version: 1,
+      chapter: chapter.id,
+      difficulty: "Easy",
+      seed: 3,
+      questions,
+      index,
+      completed: false,
+      answers: {},
+    }),
+  );
+  const { container } = render(<App />);
+  const q = questions[index];
+  if (q.type !== "sentence") throw new Error("Expected sentence");
+  expect(container.querySelectorAll(".sentence-blank").length).toBe(
+    q.sentence.split("______").length - 1,
+  );
 });

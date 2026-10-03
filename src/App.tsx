@@ -44,15 +44,15 @@ export default function App() {
   useEffect(() => {
     if (session) setStorageError(!saveSession(session));
   }, [session]);
-  function start(chapter: Chapter, difficulty: Difficulty) {
+  function start(selectedChapters: Chapter[], difficulty: Difficulty) {
     try {
       const seed = crypto.getRandomValues(new Uint32Array(1))[0];
       setSession({
         version: 1,
-        chapter: chapter.id,
+        chapter: selectedChapters.map((chapter) => chapter.id).join(" + "),
         difficulty,
         seed,
-        questions: generateQuestions(chapter, difficulty, seed),
+        questions: generateQuestions(selectedChapters, difficulty, seed),
         answers: {},
         index: 0,
         completed: false,
@@ -73,6 +73,7 @@ export default function App() {
           onClick={(e) => {
             e.preventDefault();
             setTab("암기");
+            setScreen("settings");
           }}
         >
           <img src="/brand/thoth.png" alt="Ety Thoth 원본 로고" />

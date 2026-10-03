@@ -7,30 +7,14 @@ export default function Settings({
   busy,
 }: {
   chapters: Chapter[];
-  onStart: (chapter: Chapter, difficulty: Difficulty) => void;
+  onStart: (chapters: Chapter[], difficulty: Difficulty) => void;
   busy: boolean;
 }) {
   const [difficulty, setDifficulty] = useState<Difficulty>("Medium");
-  const [chapter, setChapter] = useState("Chapter 16");
-  const selected = chapters.find((c) => c.id === chapter);
+  const [selectedIds, setSelectedIds] = useState(["Chapter 16"]);
+  const selected = chapters.filter((c) => selectedIds.includes(c.id));
   return (
     <section className="settings">
-      <div className="intro">
-        <p className="eyebrow">A LITTLE EVERY DAY.</p>
-        <h1>
-          Words worth
-          <br />
-          <em>remembering.</em>
-        </h1>
-        <p className="lead">
-          단어를 만나고, 뜻을 기억하고.
-          <br />열 문제로 시작하는 나만의 어휘 공부.
-        </p>
-        <div className="edition">
-          <span>01 / VOCABULARY</span>
-          <span>CHAPTERS 16—18</span>
-        </div>
-      </div>
       <div className="setup">
         <p className="eyebrow">오늘의 암기</p>
         <h2>Let’s study.</h2>
@@ -62,20 +46,28 @@ export default function Settings({
         </fieldset>
         <fieldset>
           <legend>
-            <span>02</span> 범위
+            <span>02</span> 범위 · 복수 선택 가능
           </legend>
           <div className="chapters">
             {CHAPTER_NAMES.map((id) => (
-              <label key={id} className={chapter === id ? "selected" : ""}>
+              <label
+                key={id}
+                className={selectedIds.includes(id) ? "selected" : ""}
+              >
                 <input
-                  type="radio"
+                  type="checkbox"
                   name="chapter"
-                  checked={chapter === id}
+                  checked={selectedIds.includes(id)}
                   disabled={!chapters.some((c) => c.id === id)}
-                  onChange={() => setChapter(id)}
+                  onChange={() =>
+                    setSelectedIds((ids) =>
+                      ids.includes(id)
+                        ? ids.filter((value) => value !== id)
+                        : [...ids, id],
+                    )
+                  }
                 />
                 <span className="display">{id}</span>
-                <span aria-hidden="true">{chapter === id ? "●" : "○"}</span>
               </label>
             ))}
           </div>
@@ -86,8 +78,8 @@ export default function Settings({
         </div>
         <button
           className="primary start"
-          disabled={busy || !selected}
-          onClick={() => selected && onStart(selected, difficulty)}
+          disabled={busy || selected.length === 0}
+          onClick={() => onStart(selected, difficulty)}
         >
           시작 <span aria-hidden="true">↗</span>
         </button>

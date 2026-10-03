@@ -82,6 +82,7 @@ describe.each(chapters)("$id engine", (chapter) => {
             );
             expect(q.sentence).toContain("______");
           } else {
+            expect(new Set(q.choices.map((c) => c.meaning)).size).toBe(4);
             expect(q.correctIds.length).toBeLessThanOrEqual(4);
             for (const c of q.choices)
               expect(c.meaning === q.originals[c.id]).toBe(
@@ -143,9 +144,9 @@ describe("scoring and review", () => {
   });
 });
 describe("edge cases", () => {
-  it("does not match inflections, substrings or different case", () => {
+  it("does not match inflections or substrings, and blanks capitalized occurrences", () => {
     expect(blankSentence(entry("act", "Actors acted."))).toBeNull();
-    expect(blankSentence(entry("word", "Word"))).toBeNull();
+    expect(blankSentence(entry("word", "Word"))).toBe("______");
     expect(blankSentence(entry("act", "We act and act."))).toBe(
       "We ______ and ______.",
     );
@@ -197,4 +198,63 @@ describe("edge cases", () => {
     expect(similarity("complaisant", "complacent")).toBeGreaterThan(
       similarity("complaisant", "fireman"),
     ));
+});
+
+describe("combined chapter safeguards", () => {
+  it("uses only selected source entries and no repeated words or meanings across combined chapters", () => {
+    for (const selection of [
+      [chapters[0], chapters[1]],
+      [chapters[1], chapters[2]],
+      chapters,
+    ]) {
+      for (const difficulty of ["Easy", "Medium", "Hard"] as Difficulty[]) {
+        for (let seed = 0; seed < 25; seed++) {
+          const qs = generateQuestions(selection, difficulty, seed);
+          const sourceWords = new Set(
+            selection.flatMap((c) => c.entries.map((e) => e.word)),
+          );
+          for (const q of qs) {
+            expect(
+              new Set(q.choices.map((c) => c.word.toLowerCase())).size,
+            ).toBe(q.choices.length);
+            expect(q.choices.every((c) => sourceWords.has(c.word))).toBe(true);
+            if (q.type === "meaning")
+              expect(new Set(q.choices.map((c) => c.meaning)).size).toBe(4);
+            else
+              expect(
+                q.sentence
+                  .split("\n")
+                  .every((example) => example.includes("______")),
+              ).toBe(true);
+          }
+        }
+      }
+    }
+  });
+  it("blanks all occurrences in each displayed example and skips unblankable examples", () => {
+    const e = entry(
+      "word",
+      "① Word and word.\\n② A word here.\\nⒺ Some words here.",
+    );
+    expect(blankSentence(e)).toBe("① ______ and ______.\n② A ______ here.");
+    expect(e.sentence).toBe(
+      "① Word and word.\\n② A word here.\\nⒺ Some words here.",
+    );
+  });
+  it("deduplicates bilingual even when it occurs in multiple selected chapters", () => {
+    const bilingual = {
+      ...chapters[0].entries[0],
+      word: "bilingual",
+      sentence: "A bilingual person.",
+    };
+    const selection = [
+      { id: "a", entries: [...chapters[0].entries, bilingual] },
+      { id: "b", entries: [bilingual, ...chapters[1].entries] },
+    ];
+    for (let seed = 0; seed < 30; seed++)
+      for (const q of generateQuestions(selection, "Hard", seed))
+        expect(
+          q.choices.filter((c) => c.word === "bilingual").length,
+        ).toBeLessThanOrEqual(1);
+  });
 });

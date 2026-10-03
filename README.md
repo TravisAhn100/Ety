@@ -26,7 +26,9 @@ directly as a file does not support workbook fetching.
 
 ## What works
 
-- 암기: one chapter per session, Chapters 16–18, Easy/Medium/Hard.
+- 암기: one or multiple chapters per session, Chapters 16–18, Easy/Medium/Hard.
+- Centered study settings, rounded choices and white selected boxes.
+- Clicking the Ety logo/name returns to settings; saved progress can be resumed.
 - Ten question slides: five meaning-match and five sentence-blank questions
   for each supplied chapter.
 - Previous/next navigation, stored answers and reload recovery.
@@ -88,19 +90,23 @@ The older npm-registry release was replaced after dependency auditing.
 
 ## Question generation
 
-**Type 1:** sample four distinct source words. Randomly choose 1–4 pair indices
+**Type 1:** sample four distinct source words with four distinct original meanings.
+Displayed words and meanings are unique within each question, including when
+chapters are combined. Comparison keys ignore case and surrounding whitespace;
+original displayed source strings remain unchanged. Randomly choose 1–4 pair indices
 to be correct. Correct pairs retain their original meaning. Other pairs use a
 different source meaning, preferring words according to difficulty. Meanings
 identical to the target's meaning cannot be used as wrong choices. If a
 different meaning does not exist, that pair remains correct.
 
-**Type 2:** use an unchanged source example cell. Find exact, case-sensitive
-target occurrences bounded by non-letter/non-number characters. Escape
-punctuation in target words and handle multi-word targets. Replace every exact
-occurrence with a blank to avoid revealing the answer elsewhere in the cell.
-Skip rows with no safe occurrence. Inflections, different case and substrings
-are not treated as exact matches. Add two distinct source-word distractors and
-shuffle the three choices. Exactly one is the original target.
+**Type 2:** split source example cells at actual/literal newlines and numbered
+example markers. Keep only examples containing the target as a whole word,
+matching capitalization variants. Escape punctuation and handle multi-word
+targets. Replace every occurrence in each retained example with an underlined
+blank. Examples containing only an inflected form are omitted, rather than
+rewritten or displayed without a blank. Rows with no usable example are skipped.
+Add two distinct source-word distractors with distinct meanings and shuffle the
+three choices. Exactly one is the original target. Source cells remain untouched.
 
 Sentence targets do not repeat within the five-question batch when at least
 five eligible entries exist. If no source rows are safe for sentence blanks,
@@ -113,7 +119,7 @@ noise. Hard uses the same similarity score with much less noise. When a chapter
 has few similar words, the available candidates are still used without
 duplicates. These are visual similarity heuristics, not semantic judgments.
 
-A session stores its random seed. The same chapter, difficulty and seed
+A session stores its random seed. The same chapter selection, difficulty and seed
 reproduce the same questions. Question count is a generator argument, default
 10, so future configuration does not require changing the generator.
 
@@ -138,7 +144,7 @@ Final checks:
 
 - `npm install` and clean `npm ci`: successful.
 - ESLint: successful.
-- Vitest: 32 passing tests across engine, UI and storage.
+- Vitest: 38 passing tests across engine, UI and storage.
 - Production TypeScript/Vite build: successful.
 - `npm audit`: zero reported vulnerabilities.
 - Engine coverage: all nine chapter/difficulty combinations across 30 seeds
@@ -161,8 +167,7 @@ The environment initially could not start Vite with host 0.0.0.0 because network
 interface enumeration failed. The checked-in configuration uses 127.0.0.1;
 the normal `npm run dev` command and local HTTP checks then succeeded.
 
-No known core-flow failure remains in the automated checks. Long source
-example cells are intentionally shown intact, which can make individual
+No known core-flow failure remains in the automated checks. Usable source examples retain their original wording, which can make individual
 slides lengthy. Multiple choice words can recur across different questions,
 as the fixed chapter is sampled locally. Difficulty is constrained by the 40
 source words in each chapter. Korean uses readable system fallback fonts.
@@ -202,8 +207,8 @@ inventory and `git log --oneline` for the incremental development history.
 3. Define the actual 모의고사 source, formats and scoring before implementing
    that mode. Keep its test policy separate while reusing slides/results where
    their rules match.
-4. Create a private GitHub repository named exactly `ety` and push this history
-   when repository-creation access becomes available.
+4. Monitor the connected Cloudflare build after GitHub updates. Static asset
+   deployment is configured explicitly in `wrangler.jsonc`.
 
 Libron source and license:
 https://github.com/nicoverbruggen/libron

@@ -54,18 +54,29 @@ export function distractors(
   random: () => number,
   meaningMustDiffer = false,
 ) {
+  const key = (value: string) =>
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/\\n|\s+/g, " ");
   const unique = [
     ...new Map(
       pool
         .filter(
           (e) =>
-            e.word !== target.word &&
-            (!meaningMustDiffer || e.meaning !== target.meaning),
+            key(e.word) !== key(target.word) &&
+            (!meaningMustDiffer || key(e.meaning) !== key(target.meaning)),
         )
-        .map((e) => [e.word, e]),
+        .map((e) => [key(e.word), e]),
     ).values(),
   ];
-  const randomized = shuffle(unique, random);
+  const meanings = new Set<string>();
+  const randomized = shuffle(unique, random).filter((e) => {
+    if (!meaningMustDiffer) return true;
+    if (meanings.has(key(e.meaning))) return false;
+    meanings.add(key(e.meaning));
+    return true;
+  });
   if (difficulty === "Easy") return randomized.slice(0, count);
   const ranked = randomized
     .map((entry) => ({

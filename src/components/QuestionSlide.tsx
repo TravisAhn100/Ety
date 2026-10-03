@@ -59,7 +59,18 @@ export default function QuestionSlide({
           : "단일 선택 · 정답은 1개입니다."}
       </p>
       {question.type === "sentence" && (
-        <p className="sentence display">{question.sentence}</p>
+        <p className="sentence display">
+          {question.sentence.split("______").map((part, i) => (
+            <span key={i}>
+              {i > 0 && (
+                <span className="sentence-blank" aria-label="빈칸">
+                  {"\u00a0".repeat(8)}
+                </span>
+              )}
+              {part}
+            </span>
+          ))}
+        </p>
       )}
       <fieldset className="answers">
         <legend className="sr-only">

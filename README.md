@@ -175,8 +175,14 @@ on branch `main`. All application changes and commits were made inside it.
 No other Git or GitHub repository was modified.
 
 GitHub repository creation was not exposed by the available GitHub operations,
-and the GitHub CLI was unavailable. No remote was configured and nothing was
-pushed. This deliverable is a local repository, not a deployed website.
+and the GitHub CLI was unavailable. At initial delivery, no remote was configured and nothing had been
+pushed. The app is not a deployed website.
+
+Subsequent GitHub upload: the user created TravisAhn100/Ety and explicitly
+authorized its public visibility. The development snapshots are uploaded
+through the GitHub connector on top of the user-created initial commit, so
+GitHub commit IDs differ from the original local IDs. The original local
+history remains intact in the downloadable archive.
 
 The downloadable archive includes tracked source files, original assets,
 dependency lockfile, the official SheetJS package and `.git` commit history.

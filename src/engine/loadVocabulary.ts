@@ -1,7 +1,15 @@
 import * as XLSX from "xlsx";
 import type { Chapter } from "./types";
-export const CHAPTER_NAMES = ["Chapter 16", "Chapter 17", "Chapter 18"];
-export const WORKBOOK_URL = "/data/Ety_Vocab_Ch16_18.xlsx";
+export const CHAPTER_NAMES = [
+  "Chapter 16",
+  "Chapter 17",
+  "Chapter 18",
+  "Chapter 19",
+  "Chapter 20",
+  "Chapter 21",
+  "Chapter 22",
+];
+export const WORKBOOK_URL = "/data/Ety_Vocab_Ch16_22.xlsx";
 export function parseVocabulary(bytes: ArrayBuffer | Uint8Array): {
   chapters: Chapter[];
   warnings: string[];

@@ -14,7 +14,7 @@ import type {
   TestSession,
   VocabularyEntry,
 } from "../src/engine/types";
-const bytes = readFileSync("public/data/Ety_Vocab_Ch16_18.xlsx");
+const bytes = readFileSync("public/data/Ety_Vocab_Ch16_22.xlsx");
 const { chapters } = parseVocabulary(bytes);
 const entry = (word: string, sentence: string): VocabularyEntry => ({
   id: "x",
@@ -24,13 +24,19 @@ const entry = (word: string, sentence: string): VocabularyEntry => ({
   sentence,
 });
 describe("source integrity", () => {
-  it("loads exactly Chapters 16–18 with 40 entries each", () => {
+  it("loads exactly Chapters 16–22 with 40 entries each", () => {
     expect(chapters.map((c) => c.id)).toEqual([
       "Chapter 16",
       "Chapter 17",
       "Chapter 18",
+      "Chapter 19",
+      "Chapter 20",
+      "Chapter 21",
+      "Chapter 22",
     ]);
-    expect(chapters.map((c) => c.entries.length)).toEqual([40, 40, 40]);
+    expect(chapters.map((c) => c.entries.length)).toEqual([
+      40, 40, 40, 40, 40, 40, 40,
+    ]);
   });
   it("leaves the original source byte-for-byte unchanged after parsing and generation", () => {
     const hash = (b: Uint8Array) =>
@@ -40,7 +46,10 @@ describe("source integrity", () => {
       "80a07901af2e39e27d7962f49631b3cdb5c00a29430fc650ff203e9bc6b173ed",
     );
     expect(hash(bytes)).toBe(
-      hash(readFileSync("public/data/Ety_Vocab_Ch16_18.xlsx")),
+      hash(readFileSync("public/data/Ety_Vocab_Ch16_22.xlsx")),
+    );
+    expect(hash(bytes)).toBe(
+      "2c83df50be078f46b21f4bed318db25b8b5ef08682c9834d27251690fb828d0c",
     );
   });
   it("preserves original word, meaning and example strings", () => {
@@ -184,7 +193,7 @@ describe("edge cases", () => {
       XLSX.write(wb, { type: "array", bookType: "xlsx" }),
     );
     expect(result.chapters[0].entries).toHaveLength(1);
-    expect(result.warnings.length).toBe(4);
+    expect(result.warnings.length).toBe(8);
   });
   it("rejects insufficient vocabulary clearly", () =>
     expect(() =>
@@ -230,7 +239,7 @@ describe("combined chapter safeguards", () => {
         }
       }
     }
-  });
+  }, 15000);
   it("blanks all occurrences in each displayed example and skips unblankable examples", () => {
     const e = entry(
       "word",

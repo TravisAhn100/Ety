@@ -11,10 +11,10 @@ import {
 import { readFileSync } from "node:fs";
 import userEvent from "@testing-library/user-event";
 import App from "../src/App";
-import { parseVocabulary } from "../src/engine/loadVocabulary";
+import { CHAPTER_NAMES, parseVocabulary } from "../src/engine/loadVocabulary";
 import { generateQuestions } from "../src/engine/generateQuestion";
 import type { Difficulty, TestSession } from "../src/engine/types";
-const source = readFileSync("public/data/Ety_Vocab_Ch16_18.xlsx");
+const source = readFileSync("public/data/Ety_Vocab_Ch16_22.xlsx");
 beforeEach(() => {
   localStorage.clear();
   vi.stubGlobal(
@@ -52,32 +52,29 @@ describe("complete study flow", () => {
     ).toBe(true);
     expect(screen.queryByText(/^정답:/)).toBeNull();
   });
-  it.each(["Chapter 16", "Chapter 17", "Chapter 18"])(
-    "%s starts for every difficulty",
-    async (chapter) => {
-      for (const difficulty of ["Easy", "Medium", "Hard"]) {
-        cleanup();
-        localStorage.clear();
-        render(<App />);
-        await waitFor(() =>
-          expect(
-            (screen.getByRole("button", { name: "시작" }) as HTMLButtonElement)
-              .disabled,
-          ).toBe(false),
-        );
-        if (chapter !== "Chapter 16") {
-          fireEvent.click(screen.getByRole("checkbox", { name: "Chapter 16" }));
-          fireEvent.click(screen.getByRole("checkbox", { name: chapter }));
-        }
-        fireEvent.click(
-          screen.getByRole("radio", { name: new RegExp(difficulty) }),
-        );
-        fireEvent.click(screen.getByRole("button", { name: "시작" }));
-        expect(screen.getByText("Question 1 / 10")).toBeTruthy();
-        expect(screen.queryByText(/^정답:/)).toBeNull();
+  it.each(CHAPTER_NAMES)("%s starts for every difficulty", async (chapter) => {
+    for (const difficulty of ["Easy", "Medium", "Hard"]) {
+      cleanup();
+      localStorage.clear();
+      render(<App />);
+      await waitFor(() =>
+        expect(
+          (screen.getByRole("button", { name: "시작" }) as HTMLButtonElement)
+            .disabled,
+        ).toBe(false),
+      );
+      if (chapter !== "Chapter 16") {
+        fireEvent.click(screen.getByRole("checkbox", { name: "Chapter 16" }));
+        fireEvent.click(screen.getByRole("checkbox", { name: chapter }));
       }
-    },
-  );
+      fireEvent.click(
+        screen.getByRole("radio", { name: new RegExp(difficulty) }),
+      );
+      fireEvent.click(screen.getByRole("button", { name: "시작" }));
+      expect(screen.getByText("Question 1 / 10")).toBeTruthy();
+      expect(screen.queryByText(/^정답:/)).toBeNull();
+    }
+  });
   it("keeps answers across slides and reload, submits, and reviews the exact question without edits", async () => {
     render(<App />);
     await waitFor(() =>

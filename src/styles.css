@@ -227,7 +227,10 @@ legend > span {
 }
 .chapters {
   display: grid;
+  grid-auto-rows: max-content;
   gap: 12px;
+  max-height: 228px;
+  overflow-y: auto;
 }
 .chapters label {
   cursor: pointer;

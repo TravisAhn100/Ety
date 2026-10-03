@@ -1,0 +1,9 @@
+node_modules/
+dist/
+*.tsbuildinfo
+source_assets/
+assets-download.json
+libron-release.json
+libron.zip
+font-download/
+test-results/
